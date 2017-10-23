@@ -1,14 +1,25 @@
 import os
 import sys
-import json
-
 # Add vendor directory to module search path
 parent_dir = os.path.abspath(os.path.dirname(__file__))
 vendor_dir = os.path.join(parent_dir, 'vendor')
 sys.path.append(vendor_dir)
 
+import json
 from lifxlan import LifxLAN
 from lifxlan import Light
+
+
+class Device(object):
+	def __init__(self, mac, ip, power, hue, saturation, brightness, temperature):
+		self.mac = mac
+		self.ip = ip
+		self.power = power
+		self.brightness = brightness
+		self.hue = hue
+		self.saturation = saturation
+		self.temperature = temperature
+		
 
 def help_message():
 	return "parameters are of the form:\nprogram.py state|apply [json formatted profile]"
@@ -24,9 +35,22 @@ if(operation == "state"):
 	jsonString = sys.argv[2]
 	jObject = json.loads(jsonString)
 
+	devices_in_JSON = []
 	for device in jObject['devices']:
-		dev = Light(device['mac'],device['ip'])
-		print(dev.get_label() + " " + str(dev.get_power()))
+		bulbRef = Light(device['mac'],device['ip'])
+		hsbk = bulbRef.get_color()
+		dev = Device(device['mac'],device['ip'],bulbRef.get_power(),hsbk[0],hsbk[1],hsbk[2],hsbk[3])
+
+		devices_in_JSON.append(json.dumps(dev.__dict__))
+
+	result = '{"devices":[' + devices_in_JSON[0] 
+
+	for i in range(1, len(devices_in_JSON)):
+		result += ',' + devices_in_JSON[i] 
+
+	result += ']}'
+
+	print(result)
 	
 elif(operation == "apply"):
 	# Parse 
