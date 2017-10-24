@@ -15,9 +15,9 @@ class Device(object):
 		self.mac = mac
 		self.ip = ip
 		self.power = power
-		self.brightness = brightness
 		self.hue = hue
 		self.saturation = saturation
+		self.brightness = brightness
 		self.temperature = temperature
 		
 
@@ -65,16 +65,20 @@ elif(operation == "apply"):
 
 	
 	# Action
-	for device_profile in jObject['devices']:
-		duration = device_profile['duration']												#milliseconds
-		dev = Light(device_profile['mac'],device_profile['ip'])
-		dev.set_power(device_profile['power'], duration) 						#range [0,65535]
-		dev.set_brightness(device_profile['brightness'], duration) 	#range [0-65535]
-		dev.set_hue(device_profile['hue'], duration) 								#range [0-65535]
-		dev.set_saturation(device_profile['saturation'], duration)	#range [0-65535]
-		dev.set_colortemp(device_profile['temperature'], duration) 	#range [2500-9000]
+	if(len(jObject['devices']) > 0):
 
-		print("profile applied for: "+dev.get_label())
+		for device_profile in jObject['devices']:
+			try:
+				duration = device_profile['duration']												#milliseconds
+				dev = Light(device_profile['mac'],device_profile['ip'])
+				dev.set_power(device_profile['power'], duration) 						#range [0,65535]
+				dev.set_hue(device_profile['hue'], duration) 								#range [0-65535]
+				dev.set_saturation(device_profile['saturation'], duration)	#range [0-65535]
+				dev.set_brightness(device_profile['brightness'], duration) 	#range [0-65535]
+				dev.set_colortemp(device_profile['temperature'], duration) 	#range [2500-9000]
+			except:
+				continue
+
 
 elif(operation == "help"):
 	print(help_message())
