@@ -37,18 +37,24 @@ if(operation == "state"):
 
 	devices_in_JSON = []
 	for device in jObject['devices']:
-		bulbRef = Light(device['mac'],device['ip'])
-		hsbk = bulbRef.get_color()
-		dev = Device(device['mac'],device['ip'],bulbRef.get_power(),hsbk[0],hsbk[1],hsbk[2],hsbk[3])
+		try:
+			bulbRef = Light(device['mac'],device['ip'])
+			hsbk = bulbRef.get_color()
+			dev = Device(device['mac'],device['ip'],bulbRef.get_power(),hsbk[0],hsbk[1],hsbk[2],hsbk[3])
+			devices_in_JSON.append(json.dumps(dev.__dict__))
+		except:
+			continue
 
-		devices_in_JSON.append(json.dumps(dev.__dict__))
+	result = ""
+	if(len(devices_in_JSON) > 0):
+		result = '{"devices":[' + devices_in_JSON[0] 
 
-	result = '{"devices":[' + devices_in_JSON[0] 
+		for i in range(1, len(devices_in_JSON)):
+			result += ',' + devices_in_JSON[i] 
 
-	for i in range(1, len(devices_in_JSON)):
-		result += ',' + devices_in_JSON[i] 
-
-	result += ']}'
+		result += ']}'
+	else:
+		result = '{"devices":[]}'
 
 	print(result)
 	
