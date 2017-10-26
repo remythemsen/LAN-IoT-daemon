@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import sys
 # Add vendor directory to module search path
@@ -32,56 +33,62 @@ if(operation == "state"):
 	#Read state from each device in jsonString, return json formatted string
 	
 	# Parse 
-	jsonString = sys.argv[2]
-	jObject = json.loads(jsonString)
+	if not sys.argv[0]:
+		# show all discoverable lights
+		# TODO 
+		pass
+	else: 
+		jsonString = sys.argv[2]
+		jObject = json.loads(jsonString)
 
-	devices_in_JSON = []
-	for device in jObject['devices']:
-		try:
-			bulbRef = Light(device['mac'],device['ip'])
-			hsbk = bulbRef.get_color()
-			dev = Device(device['mac'],device['ip'],bulbRef.get_power(),hsbk[0],hsbk[1],hsbk[2],hsbk[3])
-			devices_in_JSON.append(json.dumps(dev.__dict__))
-		except:
-			continue
-
-	result = ""
-	if(len(devices_in_JSON) > 0):
-		result = '{"devices":[' + devices_in_JSON[0] 
-
-		for i in range(1, len(devices_in_JSON)):
-			result += ',' + devices_in_JSON[i] 
-
-		result += ']}'
-	else:
-		result = '{"devices":[]}'
-
-	print(result)
-	
-elif(operation == "apply"):
-	# Parse 
-	jsonString = sys.argv[2]
-	jObject = json.loads(jsonString)
-
-	
-	# Action
-	if(len(jObject['devices']) > 0):
-
-		for device_profile in jObject['devices']:
+		devices_in_JSON = []
+		for device in jObject['devices']:
 			try:
-				duration = device_profile['duration']												#milliseconds
-				dev = Light(device_profile['mac'],device_profile['ip'])
-				dev.set_power(device_profile['power'], duration) 						#range [0,65535]
-				dev.set_hue(device_profile['hue'], duration) 								#range [0-65535]
-				dev.set_saturation(device_profile['saturation'], duration)	#range [0-65535]
-				dev.set_brightness(device_profile['brightness'], duration) 	#range [0-65535]
-				dev.set_colortemp(device_profile['temperature'], duration) 	#range [2500-9000]
+				bulbRef = Light(device['mac'],device['ip'])
+				hsbk = bulbRef.get_color()
+				dev = Device(device['mac'],device['ip'],bulbRef.get_power(),hsbk[0],hsbk[1],hsbk[2],hsbk[3])
+				devices_in_JSON.append(json.dumps(dev.__dict__))
 			except:
 				continue
 
+		result = ""
+		if(len(devices_in_JSON) > 0):
+			result = '{"devices":[' + devices_in_JSON[0] 
+
+			for i in range(1, len(devices_in_JSON)):
+				result += ',' + devices_in_JSON[i] 
+
+			result += ']}'
+		else:
+			result = '{"devices":[]}'
+
+		print(result)
+	
+elif(operation == "apply"):
+	# Parse 
+	for l in sys.stdin:
+		jsonString = l 
+		jObject = json.loads(jsonString)
+
+		
+		# Action
+		if(len(jObject) > 0):
+
+			for device_profile in jObject:
+				try:
+					duration = device_profile['duration']												#milliseconds
+					dev = Light(device_profile['mac'],device_profile['ip'])
+					dev.set_power(device_profile['power'], duration) 						#range [0,65535]
+					dev.set_hue(device_profile['hue'], duration) 								#range [0-65535]
+					dev.set_saturation(device_profile['saturation'], duration)	#range [0-65535]
+					dev.set_brightness(device_profile['brightness'], duration) 	#range [0-65535]
+					dev.set_colortemp(device_profile['temperature'], duration) 	#range [2500-9000]
+				except:
+					continue
+
 
 elif(operation == "help"):
-	print(help_message())
+		print(help_message())
 else:
 	print("Unknown parameter: "+str(operation))
 	print("Try help for more information")
