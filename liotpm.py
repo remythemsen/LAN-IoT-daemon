@@ -10,6 +10,26 @@ import json
 from lifxlan import LifxLAN
 from lifxlan import Light
 
+class TPPlugBrigde():
+	def apply(self, settings):
+		pass
+
+
+
+class LifxBridge():
+	def	apply(self, settings):
+		for device_profile in jObject:
+			try:
+				duration = device_profile['duration']												#milliseconds
+				dev = Light(device_profile['mac'],device_profile['ip'])
+				dev.set_power(device_profile['power'], duration) 						#range [0,65535]
+				dev.set_hue(device_profile['hue'], duration) 								#range [0-65535]
+				dev.set_saturation(device_profile['saturation'], duration)	#range [0-65535]
+				dev.set_brightness(device_profile['brightness'], duration) 	#range [0-65535]
+				dev.set_colortemp(device_profile['temperature'], duration) 	#range [2500-9000]
+			except:
+				continue
+		
 
 class Device(object):
 	def __init__(self, mac, ip, power, hue, saturation, brightness, temperature):
@@ -21,6 +41,12 @@ class Device(object):
 		self.brightness = brightness
 		self.temperature = temperature
 		
+def selectBridge(x):
+	switcher = {
+		"bulb": LifxBridge()
+	}
+	return switcher.get(x, "nothing")
+
 
 def help_message():
 	return "parameters are of the form:\nprogram.py state|apply [json formatted profile]"
@@ -33,9 +59,10 @@ if(operation == "state"):
 	#Read state from each device in jsonString, return json formatted string
 	
 	# Parse 
-	if not sys.argv[0]:
+	if len(sys.argv) < 3:
 		# show all discoverable lights
 		# TODO 
+		print("passing...")
 		pass
 	else: 
 		jsonString = sys.argv[2]
@@ -66,26 +93,12 @@ if(operation == "state"):
 	
 elif(operation == "apply"):
 	# Parse 
-	for l in sys.stdin:
-		jsonString = l 
-		jObject = json.loads(jsonString)
-
-		
-		# Action
-		if(len(jObject) > 0):
-
-			for device_profile in jObject:
-				try:
-					duration = device_profile['duration']												#milliseconds
-					dev = Light(device_profile['mac'],device_profile['ip'])
-					dev.set_power(device_profile['power'], duration) 						#range [0,65535]
-					dev.set_hue(device_profile['hue'], duration) 								#range [0-65535]
-					dev.set_saturation(device_profile['saturation'], duration)	#range [0-65535]
-					dev.set_brightness(device_profile['brightness'], duration) 	#range [0-65535]
-					dev.set_colortemp(device_profile['temperature'], duration) 	#range [2500-9000]
-				except:
-					continue
-
+	for line in sys.stdin:
+		jObject = json.loads(line)
+		for setting in jObject:
+			bridge = selectBridge(setting['device_type']) 
+			# Action
+			bridge.apply(setting)
 
 elif(operation == "help"):
 		print(help_message())
