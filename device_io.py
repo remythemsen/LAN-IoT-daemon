@@ -35,7 +35,6 @@ class LifxBridge():
 
 		return json.dumps(dev.__dict__)
 
-		
 
 class Device(object):
 	def __init__(self, mac, ip, power, hue, saturation, brightness, temperature):
