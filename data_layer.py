@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # This script contains the datamanagement functionality of the application
-import sqlite
+import sqlite3
+import sys
+import json
 
 #run sql script setting up db if the db 'main.db' does not exist
 def setup_db(): 
@@ -26,7 +28,7 @@ def log_state():
 	raise NotImplementedError
 
 #fetches all devices with settings associated with a specific profile
-def get_profile():
+def get_profile(profile_name):
 	try:
 		table_name = "profiles"
 		# Getting associated devices and their settings from DB
@@ -39,11 +41,11 @@ def get_profile():
 								FROM settings
 								INNER JOIN devices ON settings.device = devices.id
 								INNER JOIN types ON devices.type = types.id
-								WHERE profile = (SELECT id FROM profiles WHERE name = ?)''',(profile,))
+								WHERE profile = (SELECT id FROM profiles WHERE name = ?)''',(profile_name,))
 
 		all_rows = c.fetchall()
 		# JSON format results
-		print(json.dumps(all_rows))
+		return json.dumps(all_rows)
 	except:
 		raise
 	finally:
@@ -64,21 +66,33 @@ def dict_factory(cursor, row):
 def help():
 	return ""
 
-operation = sys.argv[1].lower()
-if(operation == "add"):
-	raise NotImplementedError
 
-elif(operation == "remove"):
-	raise NotImplementedError
-
-elif(operation == "profile"):
-	raise NotImplementedError
-
-elif(operation == "log"):
-	raise NotImplementedError
-	
-elif(operation == "help"):
-	print(help_message())
+if len(sys.argv) < 2:
+	raise Exception("no action was provided")
 else:
-	print("Unknown parameter: "+str(operation))
-	print("Try help for more information")
+	operation = sys.argv[1].lower()
+
+	if(operation == "add"):
+		raise NotImplementedError
+
+	elif(operation == "remove"):
+		raise NotImplementedError
+
+	elif(operation == "profile"):
+		if(len(sys.argv) < 3):
+				raise Exception("No profile was provided")
+		else:	
+			profile_name = sys.argv[2].lower()
+			if not profile_name == "":
+				print(get_profile(profile_name))
+			else:
+				raise Exception("No profile was provided")
+
+	elif(operation == "log"):
+		raise NotImplementedError
+		
+	elif(operation == "help"):
+		print(help_message())
+	else:
+		print("Unknown parameter: "+str(operation))
+		print("Try help for more information")
